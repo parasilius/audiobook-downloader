@@ -19,7 +19,6 @@ def getAudiobookName(html):
     return soup.find('figcaption').text
 
 def createDirectory(html):
-    parent_dir = '/home/parsa/Music/Audiobooks'
     directory_path = path.join(Path.home(), 'Music', 'Audiobooks', getAudiobookName(html))
     mkdir(directory_path)
     return directory_path
