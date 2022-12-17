@@ -1,8 +1,11 @@
 from urllib.request import Request, urlopen
 import re
 import requests
+from os import mkdir, path
+from bs4 import BeautifulSoup
+from pathlib import Path
 
-url = 'https://goldenaudiobooks.com/ward-farnsworth-the-practicing-stoic-audiobook/'
+url = input('URL - ')
 
 def getHTML(url):
     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -11,7 +14,19 @@ def getHTML(url):
 def getLinks(html):
     return re.findall('(?:href=")(.*mp3)"', html)
 
-def downloadFiles(links):
+def getAudiobookName(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    return soup.find('figcaption').text
+
+def createDirectory(html):
+    parent_dir = '/home/parsa/Music/Audiobooks'
+    directory_path = path.join(Path.home(), 'Music', 'Audiobooks', getAudiobookName(html))
+    mkdir(directory_path)
+    return directory_path
+
+def downloadFiles(html):
+    links = getLinks(html)
+
     headers = {
         'authority': 'ipaudio.club',
         'accept': '*/*',
@@ -25,10 +40,15 @@ def downloadFiles(links):
         'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
     }
 
+    # make sure the same directory does not already exist?
+    directoryPath = createDirectory(html)
+
     for i in range(len(links)):
         params = {
             '_': f'{i + 1}',
         }
+
+        print(f'Downloading part {i + 1}/{len(links)}...')
 
         response = requests.get(
             links[i],
@@ -36,7 +56,8 @@ def downloadFiles(links):
             headers=headers,
         )
 
-        open(f'part{i + 1}.mp3', 'wb').write(response.content)
+        open(path.join(directoryPath, f'part{i + 1}.mp3'), 'wb').write(response.content)
+    print('Completed!')
 
 if __name__ == '__main__':
-    downloadFiles(getLinks(getHTML(url)))
+    downloadFiles(getHTML(url))
