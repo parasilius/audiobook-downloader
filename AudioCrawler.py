@@ -5,7 +5,7 @@ from os import mkdir, path
 from bs4 import BeautifulSoup
 from pathlib import Path
 
-def getSearchHTML(term):
+def getSearchHTML(term: str) -> str:
     headers = {
         'authority': 'goldenaudiobooks.com',
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
@@ -30,29 +30,29 @@ def getSearchHTML(term):
     response = requests.get('https://goldenaudiobooks.com/', params=params, headers=headers)
     return response.text
 
-def getSearchTuplesList(html):
+def getSearchTuplesList(html: str) -> list[tuple]:
     li = re.findall('(?:<div class="image-hover-wrapper">)(\s+.*\s+)', html)
     for i in range(len(li)):
         li[i] = re.findall('(?:title=")(.*)\s&.*;\s(.*)"', li[i])[0][0], re.findall('(?:title=")(.*)\s&.*;\s(.*)"', li[i])[0][1], re.findall('(?:href=")(.*?)"', li[i])[0]
     return li
 
-def getHTML(url):
+def getHTML(url: str) -> str:
     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     return urlopen(req).read().decode('UTF-8')
 
-def getLinks(html):
+def getLinks(html: str) -> list[str]:
     return re.findall('(?:href=")(.*mp3)"', html)
 
-def getAudiobookName(html):
+def getAudiobookName(html: str) -> str:
     soup = BeautifulSoup(html, 'html.parser')
     return soup.find('figcaption').text
 
-def createDirectory(html):
+def createDirectory(html: str) -> str:
     directory_path = path.join(Path.home(), 'Music', 'Audiobooks', getAudiobookName(html))
     mkdir(directory_path)
     return directory_path
 
-def downloadFiles(html):
+def downloadFiles(html: str) -> None:
     links = getLinks(html)
 
     headers = {
