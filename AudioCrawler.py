@@ -42,20 +42,26 @@ def downloadFiles(html):
     # make sure the same directory does not already exist?
     directoryPath = createDirectory(html)
 
-    for i in range(len(links)):
+    i = 1
+    while i <= len(links):
         params = {
-            '_': f'{i + 1}',
+            '_': f'{i}',
         }
 
-        print(f'Downloading part {i + 1}/{len(links)}...')
+        print(f'Downloading part {i}/{len(links)}...')
 
-        response = requests.get(
-            links[i],
-            params=params,
-            headers=headers,
-        )
+        try:
+            response = requests.get(
+                links[i - 1],
+                params=params,
+                headers=headers,
+            )
 
-        open(path.join(directoryPath, f'part{i + 1}.mp3'), 'wb').write(response.content)
+            open(path.join(directoryPath, f'part{i}.mp3'), 'wb').write(response.content)
+        except:
+            i -= 1
+            print('Failed. Retrying...')
+        i += 1
     print('Completed!')
 
 if __name__ == '__main__':
