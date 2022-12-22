@@ -3,7 +3,7 @@ import re
 import requests
 from os import mkdir, path
 from bs4 import BeautifulSoup
-from pathlib import Path
+from utilities import *
 
 def getSearchHTML(term: str) -> str:
     headers = {
@@ -36,21 +36,12 @@ def getSearchTuplesList(html: str) -> list[tuple]:
         li[i] = re.findall('(?:title=")(.*)\s&.*;\s(.*)"', li[i])[0][0], re.findall('(?:title=")(.*)\s&.*;\s(.*)"', li[i])[0][1], re.findall('(?:href=")(.*?)"', li[i])[0]
     return li
 
-def getHTML(url: str) -> str:
-    req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    return urlopen(req).read().decode('UTF-8')
-
 def getLinks(html: str) -> list[str]:
     return re.findall('(?:href=")(.*mp3)"', html)
 
 def getAudiobookName(html: str) -> str:
     soup = BeautifulSoup(html, 'html.parser')
     return soup.find('figcaption').text
-
-def createDirectory(html: str) -> str:
-    directory_path = path.join(Path.home(), 'Music', 'Audiobooks', getAudiobookName(html))
-    mkdir(directory_path)
-    return directory_path
 
 def downloadFiles(html: str) -> None:
     links = getLinks(html)
@@ -69,7 +60,7 @@ def downloadFiles(html: str) -> None:
     }
 
     # make sure the same directory does not already exist?
-    directoryPath = createDirectory(html)
+    directoryPath = createDirectory(getAudiobookName(html))
 
     i = 1
     while i <= len(links):
