@@ -3,6 +3,27 @@ from bs4 import BeautifulSoup
 from os import mkdir, path
 from utilities import *
 
+def getSearchHTML(term: str) -> str:
+    global headers
+    headers['authority'] = 'dailyaudiobooks.com'
+
+    params = {
+        's': f'{term}',
+    }
+
+    response = requests.get('https://dailyaudiobooks.com/', params=params, headers=headers)
+    return response.text
+
+def getSearchTuplesList(html: str) -> list[tuple]:
+    soup = BeautifulSoup(html, 'html.parser')
+    h2list = soup.find_all('h2', attrs={'class': 'entry-title post-title'})
+    tuples = []
+    for h2 in h2list:
+        titleAndAuthor = h2.find('a').text
+        link = h2.find('a').get('href')
+        tuples.append((titleAndAuthor.split(' – ')[0], titleAndAuthor.split(' – ')[1], link))
+    return tuples
+
 def getLinks(html: str) -> list[str]:
     soup = BeautifulSoup(html, 'html.parser')
     li = soup.find_all('audio')
@@ -17,18 +38,8 @@ def getAudiobookName(html: str) -> str:
 def downloadFiles(html: str) -> None:
     links = getLinks(html)
 
-    headers = {
-        'authority': 'ipaudio.club',
-        'accept': '*/*',
-        'accept-language': 'en-US,en;q=0.9',
-        'range': 'bytes=0-',
-        'referer': 'https://dailyaudiobooks.com/',
-        'sec-fetch-dest': 'audio',
-        'sec-fetch-mode': 'no-cors',
-        'sec-fetch-site': 'cross-site',
-        'sec-gpc': '1',
-        'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-    }
+    global headers
+    headers['authority'] = 'ipaudio.club'
 
     # make sure the same directory does not already exist?
     directoryPath = createDirectory(getAudiobookName(html))
@@ -48,7 +59,8 @@ def downloadFiles(html: str) -> None:
                 headers=headers,
             )
 
-            open(path.join(directoryPath, f'part{i}.mp3'), 'wb').write(response.content)
+            with open(path.join(directoryPath, f'part{i}.mp3'), 'wb') as f1:
+                f1.write(response.content)
         except:
             i -= 1
             print('Failed. Retrying...')
@@ -58,7 +70,12 @@ def downloadFiles(html: str) -> None:
 if __name__ == '__main__':
     withSearch = int(input('Search a term (1) or give a link (2)?[1/2] '))
     if withSearch == 1:
-        pass
+        term = input('Enter the term to search for: ')
+        audiobooks = getSearchTuplesList(getSearchHTML(term))
+        for i in range(len(audiobooks)):
+            print(f'\n[{i + 1}]\nTitle: {audiobooks[i][1]}\nAuthor: {audiobooks[i][0]}')
+        audiobookNumber = int(input('Choose the audiobook number: '))
+        downloadFiles(getHTML(audiobooks[audiobookNumber - 1][2]))
     elif withSearch == 2:
         url = input('URL - ')
         downloadFiles(getHTML(url))

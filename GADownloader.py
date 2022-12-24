@@ -6,21 +6,8 @@ from bs4 import BeautifulSoup
 from utilities import *
 
 def getSearchHTML(term: str) -> str:
-    headers = {
-        'authority': 'goldenaudiobooks.com',
-        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'accept-language': 'en-US,en;q=0.9,fa;q=0.8',
-        'referer': 'https://goldenaudiobooks.com/',
-        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="100", "Google Chrome";v="100"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
-        'sec-fetch-dest': 'document',
-        'sec-fetch-mode': 'navigate',
-        'sec-fetch-site': 'same-origin',
-        'sec-fetch-user': '?1',
-        'upgrade-insecure-requests': '1',
-        'user-agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36',
-    }
+    global headers
+    headers['authority'] = 'goldenaudiobooks.com'
 
     params = {
         's': f'{term}',
@@ -33,7 +20,13 @@ def getSearchHTML(term: str) -> str:
 def getSearchTuplesList(html: str) -> list[tuple]:
     li = re.findall('(?:<div class="image-hover-wrapper">)(\s+.*\s+)', html)
     for i in range(len(li)):
-        li[i] = re.findall('(?:title=")(.*)\s&.*;\s(.*)"', li[i])[0][0], re.findall('(?:title=")(.*)\s&.*;\s(.*)"', li[i])[0][1], re.findall('(?:href=")(.*?)"', li[i])[0]
+        title = re.findall('(?:title=")(.*)"', li[i])[0]
+        if '&#8211;' in title:
+            title = title.replace('&#8211;', '-')
+        if '&#8217;' in title:
+            title = title.replace('&#8217;', '\'')
+        link = re.findall('(?:href=")(.*?)"', li[i])[0]
+        li[i] = title, link
     return li
 
 def getLinks(html: str) -> list[str]:
@@ -46,18 +39,8 @@ def getAudiobookName(html: str) -> str:
 def downloadFiles(html: str) -> None:
     links = getLinks(html)
 
-    headers = {
-        'authority': 'ipaudio.club',
-        'accept': '*/*',
-        'accept-language': 'en-US,en;q=0.6',
-        'range': 'bytes=0-',
-        'referer': 'https://goldenaudiobooks.com/',
-        'sec-fetch-dest': 'audio',
-        'sec-fetch-mode': 'no-cors',
-        'sec-fetch-site': 'cross-site',
-        'sec-gpc': '1',
-        'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-    }
+    global headers
+    headers['authority'] = 'ipaudio.club'
 
     # make sure the same directory does not already exist?
     directoryPath = createDirectory(getAudiobookName(html))
@@ -77,7 +60,8 @@ def downloadFiles(html: str) -> None:
                 headers=headers,
             )
 
-            open(path.join(directoryPath, f'part{i}.mp3'), 'wb').write(response.content)
+            with open(path.join(directoryPath, f'part{i}.mp3'), 'wb') as f1:
+                f1.write(response.content)
         except:
             i -= 1
             print('Failed. Retrying...')
@@ -90,9 +74,9 @@ if __name__ == '__main__':
         term = input('Enter the term to search for: ')
         audiobooks = getSearchTuplesList(getSearchHTML(term))
         for i in range(len(audiobooks)):
-            print(f'\n[{i + 1}]\nTitle: {audiobooks[i][1]}\nAuthor: {audiobooks[i][0]}\n')
+            print(f'\n[{i + 1}]\nTitle: {audiobooks[i][0]}\n')
         audiobookNumber = int(input('Choose the audiobook number: '))
-        downloadFiles(getHTML(audiobooks[audiobookNumber - 1][2]))
+        downloadFiles(getHTML(audiobooks[audiobookNumber - 1][1]))
     elif withSearch == 2:
         url = input('URL - ')
         downloadFiles(getHTML(url))
