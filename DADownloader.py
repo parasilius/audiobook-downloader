@@ -21,7 +21,7 @@ def getSearchTuplesList(html: str) -> list[tuple]:
     for h2 in h2list:
         titleAndAuthor = h2.find('a').text
         link = h2.find('a').get('href')
-        tuples.append((titleAndAuthor.split(' – ')[0], titleAndAuthor.split(' – ')[1], link))
+        tuples.append((titleAndAuthor, link))
     return tuples
 
 def getLinks(html: str) -> list[str]:
@@ -73,9 +73,9 @@ if __name__ == '__main__':
         term = input('Enter the term to search for: ')
         audiobooks = getSearchTuplesList(getSearchHTML(term))
         for i in range(len(audiobooks)):
-            print(f'\n[{i + 1}]\nTitle: {audiobooks[i][1]}\nAuthor: {audiobooks[i][0]}')
+            print(f'\n[{i + 1}]\nTitle: {audiobooks[i][0]}\n')
         audiobookNumber = int(input('Choose the audiobook number: '))
-        downloadFiles(getHTML(audiobooks[audiobookNumber - 1][2]))
+        downloadFiles(getHTML(audiobooks[audiobookNumber - 1][1]))
     elif withSearch == 2:
         url = input('URL - ')
         downloadFiles(getHTML(url))
