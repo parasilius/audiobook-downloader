@@ -1,12 +1,11 @@
 import re
 from bs4 import BeautifulSoup
 from utilities import *
-from Searcher import Searcher
-from Audiobook import Audiobook
-from main import main
+from searcher import Searcher
+from audiobook import Audiobook
 
 class GoldenAudiobookSearcher(Searcher):
-    def getNamesAndLinks(self) -> list[tuple]:
+    def getNamesAndAudiobooks(self) -> list[tuple]:
         li = re.findall('(?:<div class="image-hover-wrapper">)(\s+.*\s+)', self.html)
         for i in range(len(li)):
             title = re.findall('(?:title=")(.*)"', li[i])[0]
@@ -15,7 +14,7 @@ class GoldenAudiobookSearcher(Searcher):
             if '&#8217;' in title:
                 title = title.replace('&#8217;', '\'')
             link = re.findall('(?:href=")(.*?)"', li[i])[0]
-            li[i] = title, link
+            li[i] = title, GoldenAudioBook(link)
         return li
 
 class GoldenAudioBook(Audiobook):
@@ -27,4 +26,4 @@ class GoldenAudioBook(Audiobook):
         return soup.find('figcaption').text
 
 if __name__ == '__main__':
-    main('https://goldenaudiobooks.com', GoldenAudiobookSearcher, GoldenAudioBook)
+    downloadFromSingleSource('https://goldenaudiobooks.com', GoldenAudiobookSearcher, GoldenAudioBook)

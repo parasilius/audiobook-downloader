@@ -1,18 +1,17 @@
 from bs4 import BeautifulSoup
 from utilities import *
-from Searcher import Searcher
-from Audiobook import Audiobook
-from main import main
+from searcher import Searcher
+from audiobook import Audiobook
 
 class DailyAudiobookSearcher(Searcher):
-    def getNamesAndLinks(self) -> list[tuple]:
+    def getNamesAndAudiobooks(self) -> list[tuple]:
         soup = BeautifulSoup(self.html, 'html.parser')
         h2list = soup.find_all('h2', attrs={'class': 'entry-title post-title'})
         tuples = []
         for h2 in h2list:
             titleAndAuthor = h2.find('a').text
             link = h2.find('a').get('href')
-            tuples.append((titleAndAuthor, link))
+            tuples.append((titleAndAuthor, DailyAudiobook(link)))
         return tuples
 
 class DailyAudiobook(Audiobook):
@@ -28,4 +27,4 @@ class DailyAudiobook(Audiobook):
         return soup.find('h1', class_='entry-title post-title').contents[0]
 
 if __name__ == '__main__':
-    main('https://dailyaudiobooks.com', DailyAudiobookSearcher, DailyAudiobook)
+    downloadFromSingleSource('https://dailyaudiobooks.com', DailyAudiobookSearcher, DailyAudiobook)

@@ -13,9 +13,14 @@ class Searcher(ABC):
             's': f'{term}',
         }
 
-        response = requests.get(self.address, params=params, headers=headers)
-        self.html = response.text
+        try:
+            response = requests.get(self.address, params=params, headers=headers)
+            print(response)
+            self.html = response.text
+            print(self.html)
+        except Exception as err:
+            print(err)
 
     @abstractmethod
-    def getNamesAndLinks(self) -> list[tuple]:
+    def getNamesAndAudiobooks(self) -> list[tuple]:
         pass

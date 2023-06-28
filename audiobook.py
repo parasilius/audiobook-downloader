@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from utilities import *
 import requests
 from os import path
+import re
 
 class Audiobook(ABC):
     def __init__(self, link: str):
@@ -38,6 +39,9 @@ class Audiobook(ABC):
                 print('Failed. Retrying...')
             i += 1
         print('Completed!')
+
+    def getSource(self) -> str:
+        return self.link
 
     @abstractmethod
     def getName(self):
