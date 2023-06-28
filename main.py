@@ -1,5 +1,4 @@
-import da_downloader
-import ga_downloader
+from audiobook_downloader import ga_downloader, da_downloader
 
 def downloadFromAllSources():
     term = input('Enter the term to search for: ')

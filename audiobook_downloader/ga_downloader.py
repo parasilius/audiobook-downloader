@@ -1,8 +1,8 @@
 import re
 from bs4 import BeautifulSoup
-from utilities import *
-from searcher import Searcher
-from audiobook import Audiobook
+from audiobook_downloader.utilities import *
+from audiobook_downloader.searcher import Searcher
+from audiobook_downloader.audiobook import Audiobook
 
 class GoldenAudiobookSearcher(Searcher):
     def getNamesAndAudiobooks(self) -> list[tuple]:

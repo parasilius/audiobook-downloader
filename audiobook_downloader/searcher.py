@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from utilities import *
+from audiobook_downloader.utilities import *
 import requests
 
 class Searcher(ABC):
